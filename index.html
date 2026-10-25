@@ -1,0 +1,356 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style></head><body>
+<title>Pases de sala</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: una columna de tarjetas por cama; cada tarjeta muestra el pase listo y se abre para editar */
+:root{
+  --bg:#eef2f1; --surface:#ffffff; --ink:#15211f; --muted:#5b6b68; --line:#d3dcda;
+  --accent:#0f6b5c; --accent-ink:#ffffff; --soft:#e2ece9; --warn:#a4531a; --wa:#1c8d4c;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1514; --surface:#18211f; --ink:#e3ece9; --muted:#93a5a1; --line:#2b3835;
+  --accent:#4fbfa8; --accent-ink:#06211c; --soft:#20302c; --warn:#e39a62; --wa:#45c47c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1514; --surface:#18211f; --ink:#e3ece9; --muted:#93a5a1; --line:#2b3835;
+  --accent:#4fbfa8; --accent-ink:#06211c; --soft:#20302c; --warn:#e39a62; --wa:#45c47c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-direction:column;gap:10px}
+h1{font-size:1.35rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:.9rem;margin:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:10px;padding:9px 13px;cursor:pointer;min-height:42px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.wa{background:var(--wa);color:#fff;border-color:var(--wa);font-weight:700}
+button.ghost{background:transparent}
+button.danger{color:var(--warn)}
+.confirm{background:var(--soft);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;font-size:.95rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.chead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.bed{font-family:var(--f-mono);font-weight:600;background:var(--soft);border-radius:8px;padding:3px 8px;font-size:.95rem}
+.who{font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.day{color:var(--muted);font-size:.85rem;white-space:nowrap}
+pre.out{margin:0;padding:12px 14px;font-family:var(--f-mono);font-size:.82rem;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.actions{display:flex;gap:8px;padding:0 14px 12px;flex-wrap:wrap}
+.actions button{flex:1 1 auto}
+.ed{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.wide{grid-column:1/-1}
+label,.lab{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:2.6em}
+fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+legend{padding:0;margin-bottom:6px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{min-height:36px;padding:6px 11px;font-size:.88rem}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.labs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.lrow{display:grid;grid-template-columns:3.4em 1fr;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.85rem}
+.lrow input{font-family:var(--f-mono);font-variant-numeric:tabular-nums;padding:6px 8px}
+.prev{grid-column:2;font-size:.72rem;color:var(--muted);margin-top:-4px}
+.chk{display:flex;align-items:center;gap:8px;font-size:.92rem}
+.chk input{width:20px;height:20px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:999px;font-size:.92rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.empty{border:1px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--muted)}
+.note{font-size:.82rem;color:var(--muted)}
+details summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+.dict{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--soft)}
+.dict textarea{min-height:5.5em;font-size:17px}
+.hint{font-size:.85rem;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+.mic{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);display:grid;place-items:center}
+.mic svg{width:14px;height:14px;fill:var(--accent-ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.8rem;border-radius:999px;padding:3px 10px;background:var(--surface);border:1px solid var(--line)}
+.chip.miss{border-color:var(--warn);color:var(--warn)}
+button.mic-btn{display:inline-flex;align-items:center;gap:6px;font-weight:700;border-color:var(--accent);color:var(--accent)}
+button.mic-btn svg{width:15px;height:15px;fill:currentColor}
+button.mic-btn.rec{background:var(--warn);border-color:var(--warn);color:#fff;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.7}}
+@media (prefers-reduced-motion:reduce){button.mic-btn.rec{animation:none}}
+button.dic{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button.dic svg{width:15px;height:15px;fill:currentColor}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Pases de sala</h1>
+      <p class="sub" id="fecha"></p>
+    </div>
+    <div class="bar">
+      <button class="pri" id="add">+ Paciente</button>
+      <button class="ghost" id="backup">Respaldo</button>
+    </div>
+    <div class="confirm" id="nd-banner" hidden>
+      <div id="nd-text"></div>
+      <div class="bar"><button id="nd-ok" class="pri">Entendido</button><button id="nd-undo">Deshacer</button></div>
+    </div>
+    <div class="confirm" id="bk" hidden>
+      <div class="note">Los datos se guardan sólo en este navegador. Copiá el respaldo de vez en cuando o para pasarlo a otro dispositivo.</div>
+      <textarea id="bk-text" rows="4" aria-label="Texto de respaldo"></textarea>
+      <div class="bar"><button id="bk-copy">Copiar respaldo</button><button id="bk-load">Cargar desde el texto</button><button id="bk-close">Cerrar</button></div>
+    </div>
+  </header>
+  <main id="list" class="wrap" style="padding:0"></main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const LABS=[
+  ["Hb","HB",["hb","hgb","hemoglobina"]],["Hto","Hto",["hto","hematocrito"]],["GB","GB",["gb","leucocitos","blancos","wbc"]],
+  ["Plaq","Plaquetas",["plaq","plaquetas","plt"]],["TP","Tiempo de protrombina",["tp","tiempo de protrombina","quick"]],
+  ["RIN","RIN",["rin","inr"]],["Cr","Cr",["cr","creatinina","crea"]],["Urea","Urea",["urea"]],
+  ["Na","Na",["na","sodio"]],["K","K",["k","potasio"]],["PCR","PCR",["pcr"]],["Lact","Lactato",["lactato","lact"]]
+];
+const DREN=["seroso","serohemático","hemático","hematúrico","purulento","bilioso","quiloso","urinoso"];
+const KEY="pases-sala-v1";
+let state={patients:[]}, open=null, storageOK=true;
+
+function blank(){const l={};LABS.forEach(([k])=>l[k]={c:"",p:""});
+  return{id:Math.random().toString(36).slice(2,9),cama:"",nombre:"",dia:"1",motivo:"",cirugia:"",pop:"",estado:"Estable, afebril.",
+  diuresis:"",sonda:"",drenOn:false,drenMl:"",drenTipo:"seroso",deamb:"",dieta:"",labs:l,labPend:false,imagenes:"",novedades:"",plan:"",pendientes:""}}
+
+const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const daysBetween=(a,b)=>Math.round((Date.parse(b+"T12:00:00")-Date.parse(a+"T12:00:00"))/864e5);
+let undoSnap=null;
+// Al abrir en un día nuevo: suma los días transcurridos a internación y POP, y pasa el lab de hoy a previo
+function rollover(){const t=todayStr();if(!state.lastDate){state.lastDate=t;return}
+  const n=daysBetween(state.lastDate,t);if(n<=0){state.lastDate=t;return}
+  undoSnap=JSON.stringify(state);
+  state.patients.forEach(p=>{const d=parseInt(p.dia);if(!isNaN(d))p.dia=String(d+n);const q=parseInt(p.pop);if(!isNaN(q))p.pop=String(q+n);
+    Object.values(p.labs).forEach(v=>{if(v.c){v.p=v.c;v.c=""}});p.labPend=true;p.novedades="";if(p.drenOn)p.drenMl="";p.deamb="";p.dieta=""});
+  state.lastDate=t;save();
+  if(state.patients.length){document.getElementById("nd-text").innerHTML=`<b>Nuevo día.</b> Sumé ${n===1?"1 día":n+" días"} a internación y POP, pasé el laboratorio a previo (entre paréntesis) y vacié novedades, débito de drenaje, deambulación y dieta.`;
+    document.getElementById("nd-banner").hidden=false}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){state=JSON.parse(r);return}}catch(e){storageOK=false}
+  // Paciente de ejemplo ficticio
+  const p=blank();Object.assign(p,{cama:"000",nombre:"EJEMPLO, Paciente",dia:"2",motivo:"ITU + hematuria",cirugia:"",diuresis:"Diuresis espontánea hematúrica.",
+    imagenes:"Ecografía: riñones con quistes simples.",labPend:true,novedades:"Paciente de ejemplo: borralo con Editar > Dar de alta."});
+  Object.entries({Hb:"9.8",Hto:"29",GB:"11000",Cr:"1.2"}).forEach(([k,v])=>p.labs[k].c=v);
+  state.patients=[p];open=null}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){if(storageOK){storageOK=false;toast("No se pudo guardar en este navegador")}}}
+
+const dot=s=>{s=(s||"").trim();return !s?"":/[.!?:]$/.test(s)?s:s+"."};
+function pase(p){
+  const L=[];
+  let h=[p.cama,p.nombre].filter(Boolean).join(" ");
+  let a=dot(h);
+  if(p.dia) a+=` ${p.dia}° día de internación${p.motivo?" por "+p.motivo:""}.`; else if(p.motivo) a+=` Internado por ${p.motivo}.`;
+  if(p.cirugia) a+=` ${p.pop!==""?p.pop+"° POP de ":"POP de "}${p.cirugia}.`;
+  [p.estado,p.diuresis,p.sonda].forEach(x=>{if(x&&x.trim())a+=" "+dot(x)});
+  if(p.drenOn) a+=` Drenaje: ${p.drenMl?p.drenMl+" ml ":""}${p.drenTipo}.`;
+  if(p.deamb==="si")a+=" Deambuló."; if(p.deamb==="no")a+=" No deambuló.";
+  if(p.dieta==="si")a+=" Tolera dieta."; if(p.dieta==="no")a+=" No tolera dieta."; if(p.dieta==="ayuno")a+=" En ayuno.";
+  L.push(a.trim());
+  if(p.imagenes&&p.imagenes.trim()) L.push(dot(p.imagenes));
+  const parts=[];
+  LABS.forEach(([k,lbl])=>{const v=p.labs[k]||{};
+    if(v.c) parts.push(`${lbl}: ${v.c}${v.p?" ("+v.p+")":""}`);
+    else if(v.p) parts.push(`${lbl}: ${v.p}`);});
+  let lab=parts.length?"Laboratorio: "+parts.join(", ")+".":"";
+  if(p.labPend) lab+=(lab?" ":"")+"Laboratorio de hoy pendiente.";
+  if(lab) L.push(lab);
+  if(p.novedades&&p.novedades.trim()) L.push(dot(p.novedades));
+  if(p.plan&&p.plan.trim()) L.push(dot(p.plan));
+  if(p.pendientes&&p.pendientes.trim()) L.push("Pendiente: "+dot(p.pendientes));
+  return L.join("\n");
+}
+
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function seg(id,key,opts,cur){return `<div class="seg" role="group">${opts.map(([v,t])=>`<button type="button" data-seg="${key}" data-v="${v}" aria-pressed="${cur===v}">${t}</button>`).join("")}</div>`}
+function field(p,k,label,opts={}){const id=`${k}-${p.id}`;
+  const tag=opts.area?`<textarea id="${id}" data-k="${k}" rows="${opts.rows||2}">${esc(p[k])}</textarea>`
+    :`<input id="${id}" data-k="${k}" value="${esc(p[k])}" ${opts.num?'inputmode="decimal"':""} placeholder="${esc(opts.ph||"")}">`;
+  return `<div class="f ${opts.wide?"wide":""}"><label for="${id}">${label}</label>${tag}</div>`}
+
+function editor(p){
+  return `<div class="ed" data-id="${p.id}">
+   <div class="grid">
+    ${field(p,"cama","Cama",{num:true})}${field(p,"nombre","Paciente",{ph:"APELLIDO, Nombre"})}
+    ${field(p,"dia","Día internación",{num:true})}${field(p,"motivo","Motivo",{ph:"ITU + hematuria"})}
+    ${field(p,"cirugia","Cirugía",{ph:"RIRS izq."})}${field(p,"pop","Día POP",{num:true})}
+    ${field(p,"estado","Estado",{wide:true,area:true,rows:1})}
+    ${field(p,"diuresis","Diuresis",{wide:true,ph:"Diuresis espontánea clara"})}
+    ${field(p,"sonda","Sonda / catéter",{wide:true,ph:"SV 3 vías con lavado continuo"})}
+   </div>
+   <fieldset><legend class="lab">Drenaje</legend>
+    <label class="chk" style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink)"><input type="checkbox" id="drenOn-${p.id}" data-k="drenOn" ${p.drenOn?"checked":""}> Tiene drenaje</label>
+    <div class="grid" ${p.drenOn?"":"hidden"} data-dren>
+      <div class="f"><label for="drenMl-${p.id}">Débito (ml)</label><input id="drenMl-${p.id}" data-k="drenMl" inputmode="numeric" value="${esc(p.drenMl)}"></div>
+      <div class="f"><label for="drenTipo-${p.id}">Característica</label><select id="drenTipo-${p.id}" data-k="drenTipo">${DREN.map(d=>`<option ${d===p.drenTipo?"selected":""}>${d}</option>`).join("")}</select></div>
+    </div>
+   </fieldset>
+   <div class="grid">
+    <div class="f"><span class="lab">Deambuló</span>${seg(p.id,"deamb",[["si","Sí"],["no","No"],["","—"]],p.deamb)}</div>
+    <div class="f"><span class="lab">Dieta</span>${seg(p.id,"dieta",[["si","Tolera"],["no","No tolera"],["ayuno","Ayuno"],["","—"]],p.dieta)}</div>
+   </div>
+   <fieldset><legend class="lab">Laboratorio de hoy · previo entre paréntesis</legend>
+    <div class="labs">${LABS.map(([k])=>{const v=p.labs[k]||{c:"",p:""};return `<div class="lrow"><label for="lab-${k}-${p.id}" style="font-size:.85rem;text-transform:none;letter-spacing:0;color:var(--ink);font-family:var(--f-mono)">${k}</label><input id="lab-${k}-${p.id}" data-lab="${k}" inputmode="decimal" value="${esc(v.c)}">${v.p?`<span class="prev">previo ${esc(v.p)}</span>`:""}</div>`}).join("")}</div>
+    <div class="f"><label for="paste-${p.id}">Pegar laboratorio (completa los campos)</label><textarea id="paste-${p.id}" data-paste rows="2" placeholder="HB: 7.1, Hto: 22, GB: 9800, Cr: 1.5…"></textarea></div>
+    <label class="chk" style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink)"><input type="checkbox" id="labPend-${p.id}" data-k="labPend" ${p.labPend?"checked":""}> Laboratorio de hoy pendiente</label>
+   </fieldset>
+   <div class="grid">
+    ${field(p,"imagenes","Imágenes",{wide:true,area:true})}
+    ${field(p,"novedades","Novedades del día (se borran al pasar de día)",{wide:true,area:true})}
+    ${field(p,"plan","Tratamiento / plan",{wide:true,area:true})}
+    ${field(p,"pendientes","Pendientes",{wide:true,area:true,rows:1})}
+   </div>
+   <div class="bar"><button data-act="close">Listo</button><button class="danger ghost" data-act="del">Dar de alta / borrar</button></div>
+   <div class="confirm" data-delc hidden><div>¿Borrar a <b>${esc(p.nombre||"este paciente")}</b> de la lista?</div><div class="bar"><button class="pri" data-act="del-yes">Borrar</button><button data-act="del-no">Cancelar</button></div></div>
+  </div>`}
+
+const MIC='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12z"/></svg>';
+let dictOpen=null, dictRes={};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let micBlocked=!SR, rec=null, recId=null;
+function stopRec(){if(rec){try{rec.stop()}catch(e){}}}
+function startRec(p,card){
+  if(rec){stopRec();return}
+  const ta=card.querySelector("[data-dict]");const base=ta.value?ta.value.replace(/\s*$/," "):"";let fin="";
+  try{rec=new SR()}catch(e){micBlocked=true;render();return}
+  rec.lang="es-AR";rec.continuous=true;rec.interimResults=true;recId=p.id;
+  rec.onresult=ev=>{let inter="";for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];if(r.isFinal)fin+=r[0].transcript+" ";else inter+=r[0].transcript}
+    ta.value=base+fin+inter};
+  rec.onerror=ev=>{if(["not-allowed","service-not-allowed","audio-capture"].includes(ev.error)){micBlocked=true;toast("No hay acceso al micrófono: usá el del teclado")}
+    else if(ev.error!=="no-speech"&&ev.error!=="aborted")toast("Error de dictado: "+ev.error)};
+  rec.onend=()=>{rec=null;recId=null;const b=document.querySelector('[data-act="mic"]');if(b){b.classList.remove("rec");b.innerHTML=MIC+"Hablar"}if(micBlocked)render()};
+  try{rec.start();const b=card.querySelector('[data-act="mic"]');b.classList.add("rec");b.innerHTML=MIC+"Detener"}catch(e){rec=null;micBlocked=true;render()}
+}
+function dictPanel(p){const r=dictRes[p.id];
+  return `<div class="dict">
+    <div class="hint"><span class="mic">${MIC}</span><span>${micBlocked?"Tocá el cuadro y apretá el <b>micrófono del teclado</b>.":"Tocá <b>Hablar</b> (o el micrófono del teclado)."} Hablá de corrido, por ejemplo: <i>"estable, afebril, hemoglobina 7,1, hematocrito 22, plaquetas 110 mil, creatinina 1,4, drenaje 80 serohemático, deambuló, tolera dieta"</i>.</span></div>
+    <textarea id="dict-${p.id}" data-dict aria-label="Texto dictado"></textarea>
+    <div class="bar">${micBlocked?"":`<button class="mic-btn" data-act="mic">${MIC}Hablar</button>`}<button class="pri" data-act="dict-apply">Aplicar</button><button data-act="dict-close">Cerrar</button></div>
+    ${r?`<div class="chips">${r.ok.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>
+      ${r.miss.length?`<div class="note">No entendí esto:</div><div class="chips">${r.miss.map(x=>`<span class="chip miss">${esc(x)}</span>`).join("")}</div>
+      <div class="bar"><button data-act="dict-nov">Agregar a novedades</button></div>`:""}`:""}
+  </div>`}
+
+const noAcc=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
+const SPK={hb:["hemoglobina","hb","hgb","hache be"],hto:["hematocrito","hto"],gb:["globulos blancos","blancos","leucocitos","leucocitosis","gb"],
+  plaq:["plaquetas","plaq","plt"],tp:["tiempo de protrombina","protrombina","quick","tp"],rin:["rin","inr"],cr:["creatinina","crea","cr"],
+  urea:["urea"],na:["sodio","na"],k:["potasio","k"],pcr:["pcr","proteina c reactiva"],lact:["lactato","acido lactico"]};
+const KMAP={hb:"Hb",hto:"Hto",gb:"GB",plaq:"Plaq",tp:"TP",rin:"RIN",cr:"Cr",urea:"Urea",na:"Na",k:"K",pcr:"PCR",lact:"Lact"};
+const NUM="(\\d+(?:[.,]\\d+)?(?:\\s*mil\\b)?)";
+function normNum(s){s=s.trim();let mil=/mil$/.test(s);s=s.replace(/\s*mil$/,"");
+  if(/^\d{1,3}\.\d{3}$/.test(s))s=s.replace(".","");s=s.replace(",",".");
+  if(mil)s=String(Math.round(parseFloat(s)*1000));return s}
+const ESTADO=["hemodinamicamente estable","estable","inestable","afebril","febril","subfebril","vigil","lucido","orientado","sin dolor","dolor controlado","con dolor","normotenso","hipotenso","taquicardico","sin nauseas","con nauseas","catarsis","sin catarsis","eupneico"];
+const ACC={hemodinamicamente:"hemodinámicamente",lucido:"lúcido",taquicardico:"taquicárdico",nauseas:"náuseas",eupneico:"eupneico"};
+function dictParse(raw,p){
+  const ok=[],miss=[];
+  let t=" "+noAcc(raw.toLowerCase()).replace(/\s+/g," ")+" ";
+  t=t.replace(/(\d+)\s+coma\s+(\d+)/g,"$1,$2").replace(/(\d+)\s+punto\s+(\d+)/g,"$1.$2");
+  const cut=(m)=>{t=t.replace(m," | ")};
+  // laboratorio
+  let labs=0;
+  Object.entries(SPK).sort((a,b)=>Math.max(...b[1].map(x=>x.length))-Math.max(...a[1].map(x=>x.length))).forEach(([key,al])=>{
+    for(const a of al.slice().sort((x,y)=>y.length-x.length)){
+      const re=new RegExp("(^|[^a-z])"+a.replace(/ /g,"\\s+")+"(?:\\s+de)?\\s*[:=]?\\s*(?:es\\s+|en\\s+|de\\s+)?"+NUM,"i");
+      const m=t.match(re);if(m){const v=normNum(m[2]);p.labs[KMAP[key]].c=v;ok.push(`${KMAP[key]} ${v}`);labs++;cut(m[0].slice(m[1].length));break}}});
+  if(labs)p.labPend=false;
+  if(/(laboratorio|lab)( de hoy)? pendiente/.test(t)){p.labPend=true;ok.push("Lab pendiente");t=t.replace(/(laboratorio|lab)( de hoy)? pendiente/," | ")}
+  // drenaje
+  const tipos=[["sero ?hemati","serohemático"],["hemati","hemático"],["hematuri","hematúrico"],["seros","seroso"],["purulen","purulento"],["bilios","bilioso"],["quilos","quiloso"],["urinos","urinoso"]];
+  const dm=t.match(/drenaje(?:\s+(?:con|de|debito|debito de))*\s*(\d+)?\s*(?:ml|cc|mililitros)?\s*([a-z ]{0,20})?/);
+  if(dm){p.drenOn=true;if(dm[1])p.drenMl=dm[1];const rest=dm[2]||"";const tt=tipos.find(([r])=>new RegExp(r).test(rest));
+    let used=dm[0].slice(0,dm[0].length-rest.length);if(tt){p.drenTipo=tt[1];used=dm[0].slice(0,dm[0].indexOf(rest))+rest.match(new RegExp(tt[0]+"[a-z]*"))[0]}
+    ok.push(`Drenaje ${p.drenMl?p.drenMl+" ml ":""}${p.drenTipo}`);cut(used)}
+  else if(/sin drenaje|se retiro (el )?drenaje|retiro de drenaje/.test(t)){p.drenOn=false;ok.push("Sin drenaje");t=t.replace(/sin drenaje|se retiro (el )?drenaje|retiro de drenaje/," | ")}
+  // deambulación y dieta
+  const nd=/no (deambul\w*|camin\w*)/, sd=/deambul\w*|camin\w*/;
+  if(nd.test(t)){p.deamb="no";ok.push("No deambuló");t=t.replace(nd," | ")}else if(sd.test(t)){p.deamb="si";ok.push("Deambuló");t=t.replace(sd," | ")}
+  const nt=/no toler\w*( (la )?(dieta|via oral|vo))?/, st=/toler\w*( (la )?(dieta|via oral|vo))?|buena tolerancia( oral)?/, ay=/ayuno|nada por boca|\bnpo\b/;
+  if(nt.test(t)){p.dieta="no";ok.push("No tolera dieta");t=t.replace(nt," | ")}else if(ay.test(t)){p.dieta="ayuno";ok.push("Ayuno");t=t.replace(ay," | ")}else if(st.test(t)){p.dieta="si";ok.push("Tolera dieta");t=t.replace(st," | ")}
+  // diuresis
+  const di=t.match(/diuresis[^|.;,]*/);if(di){const s=di[0].trim();p.diuresis=s[0].toUpperCase()+s.slice(1);ok.push("Diuresis");cut(di[0])}
+  // estado y sobrantes
+  const segs=t.split(/[|.;,]| y /).map(s=>s.trim()).filter(s=>s&&!/^(y|con|de|el|la|paciente)$/.test(s));
+  const est=[];
+  segs.forEach(s=>{if(ESTADO.some(e=>new RegExp("\\b"+e+"\\b").test(s)))est.push(s);else miss.push(s)});
+  if(est.length){let e=est.join(", ");Object.entries(ACC).forEach(([a,b])=>e=e.replace(new RegExp("\\b"+a+"\\b","g"),b));p.estado=e[0].toUpperCase()+e.slice(1)+".";ok.push("Estado")}
+  return{ok,miss};
+}
+
+function sortP(){state.patients.sort((a,b)=>(parseFloat(a.cama)||1e9)-(parseFloat(b.cama)||1e9))}
+function render(){
+  sortP();
+  const el=document.getElementById("list");
+  if(!state.patients.length){el.innerHTML=`<div class="empty">No hay pacientes cargados. Tocá <b>+ Paciente</b> para agregar el primero.</div>`;return}
+  el.innerHTML=state.patients.map(p=>`<article class="card" data-id="${p.id}">
+    <div class="chead" data-act="toggle" style="cursor:pointer"><span class="bed">${esc(p.cama||"—")}</span><span class="who">${esc(p.nombre||"Sin nombre")}</span><span class="day">${p.dia?`día ${esc(p.dia)}`:""}${p.cirugia&&p.pop!==""?` · POP ${esc(p.pop)}`:""}</span></div>
+    <pre class="out" data-out>${esc(pase(p))}</pre>
+    <div class="actions"><button class="pri" data-act="copy">Copiar</button><button class="wa" data-act="wa">WhatsApp</button><button class="dic" data-act="dict">${MIC}Dictar</button><button data-act="toggle">${open===p.id?"Cerrar":"Editar"}</button></div>
+    ${dictOpen===p.id?dictPanel(p):""}
+    ${open===p.id?editor(p):""}
+  </article>`).join("");
+}
+const find=id=>state.patients.find(p=>p.id===id);
+function refresh(card,p){card.querySelector("[data-out]").textContent=pase(p);
+  card.querySelector(".bed").textContent=p.cama||"—";card.querySelector(".who").textContent=p.nombre||"Sin nombre";
+  card.querySelector(".day").textContent=(p.dia?`día ${p.dia}`:"")+(p.cirugia&&p.pop!==""?` · POP ${p.pop}`:"");save()}
+
+let tt;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),1800)}
+async function copy(text,card){try{await navigator.clipboard.writeText(text);toast("Copiado")}
+  catch(e){const r=document.createRange();const pre=card.querySelector("[data-out]");r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);
+    try{document.execCommand("copy");toast("Copiado")}catch(_){toast("Texto seleccionado: copialo manualmente")}}}
+
+function parseLabs(txt,p){let n=0;const t=" "+txt.toLowerCase().replace(/\n/g," ")+" ";
+  LABS.forEach(([k,,al])=>{for(const a of al){const re=new RegExp("(^|[^a-záéíóú])"+a.replace(/ /g,"\\s+")+"\\s*[:=]?\\s*(\\d[\\d.,]*)","i");const m=t.match(re);
+    if(m){p.labs[k].c=m[2].replace(/[.,]$/,"");n++;break}}});return n}
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act],[data-seg]");if(!b)return;
+  const card=b.closest(".card");const p=card&&find(card.dataset.id);
+  if(b.dataset.seg){p[b.dataset.seg]=b.dataset.v;b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));refresh(card,p);return}
+  const a=b.dataset.act;
+  if(a==="toggle"){open=open===p.id?null:p.id;render();if(open)document.querySelector(`.card[data-id="${p.id}"]`).scrollIntoView({block:"start",behavior:"smooth"})}
+  if(a==="close"){open=null;render()}
+  if(a==="copy")copy(pase(p),card);
+  if(a==="wa"){const u="https://wa.me/?text="+encodeURIComponent(pase(p));const w=window.open(u,"_blank");if(!w){const l=document.createElement("a");l.href=u;l.target="_blank";l.rel="noopener";l.click()}}
+  if(a==="dict"){dictOpen=dictOpen===p.id?null:p.id;delete dictRes[p.id];render();if(dictOpen){const ta=document.getElementById("dict-"+p.id);ta.focus();ta.scrollIntoView({block:"center"})}}
+  if(a==="mic"){startRec(p,card);return}
+  if(a==="dict-close"){stopRec();dictOpen=null;delete dictRes[p.id];render()}
+  if(a==="dict-apply"){stopRec();const ta=card.querySelector("[data-dict]");if(!ta.value.trim()){toast("Primero dictá o escribí algo");return}
+    const r=dictParse(ta.value,p);dictRes[p.id]=r;save();render();
+    toast(r.ok.length?`Actualicé ${r.ok.length} dato${r.ok.length>1?"s":""}`:"No reconocí datos")}
+  if(a==="dict-nov"){const r=dictRes[p.id];if(r&&r.miss.length){const add=r.miss.map(x=>x[0].toUpperCase()+x.slice(1)).join(". ")+".";p.novedades=(p.novedades?dot(p.novedades)+" ":"")+add;r.miss=[];save();render();toast("Agregado a novedades")}}
+  if(a==="del")card.querySelector("[data-delc]").hidden=false;
+  if(a==="del-no")card.querySelector("[data-delc]").hidden=true;
+  if(a==="del-yes"){state.patients=state.patients.filter(x=>x.id!==p.id);open=null;save();render();toast("Paciente borrado")}
+});
+document.addEventListener("input",e=>{
+  const t=e.target;const card=t.closest(".card");if(!card)return;const p=find(card.dataset.id);
+  if(t.dataset.k){p[t.dataset.k]=t.type==="checkbox"?t.checked:t.value;
+    if(t.dataset.k==="drenOn")card.querySelector("[data-dren]").hidden=!t.checked;refresh(card,p)}
+  else if(t.dataset.lab){p.labs[t.dataset.lab].c=t.value.trim();if(t.value.trim()&&p.labPend){p.labPend=false;const c=card.querySelector('[data-k="labPend"]');if(c)c.checked=false}refresh(card,p)}
+});
+document.addEventListener("change",e=>{const t=e.target;if(!t.matches("[data-paste]"))return;const card=t.closest(".card");const p=find(card.dataset.id);
+  const n=parseLabs(t.value,p);if(n){p.labPend=false;save();render();toast(`${n} valores cargados`)}else toast("No reconocí valores de laboratorio")});
+
+document.getElementById("add").onclick=()=>{const p=blank();state.patients.push(p);open=p.id;save();render();
+  const el=document.getElementById("cama-"+p.id);if(el){el.scrollIntoView({block:"center"});el.focus()}};
+document.getElementById("nd-ok").onclick=()=>{document.getElementById("nd-banner").hidden=true;undoSnap=null};
+document.getElementById("nd-undo").onclick=()=>{if(undoSnap){state=JSON.parse(undoSnap);state.lastDate=todayStr();undoSnap=null;save();render();toast("Cambio de día deshecho")}document.getElementById("nd-banner").hidden=true};
+document.getElementById("backup").onclick=()=>{const b=document.getElementById("bk");b.hidden=!b.hidden;document.getElementById("bk-text").value=JSON.stringify(state)};
+document.getElementById("bk-close").onclick=()=>document.getElementById("bk").hidden=true;
+document.getElementById("bk-copy").onclick=async()=>{const ta=document.getElementById("bk-text");try{await navigator.clipboard.writeText(ta.value);toast("Respaldo copiado")}catch(e){ta.select();toast("Seleccionado: copialo manualmente")}};
+document.getElementById("bk-load").onclick=()=>{try{const s=JSON.parse(document.getElementById("bk-text").value);if(!Array.isArray(s.patients))throw 0;state=s;open=null;save();render();toast("Respaldo cargado")}catch(e){toast("El texto no es un respaldo válido")}};
+
+document.getElementById("fecha").textContent=new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"});
+load();rollover();render();
+</script>
+
+</body></html>
